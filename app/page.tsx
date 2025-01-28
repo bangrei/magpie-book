@@ -1,101 +1,112 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useState } from "react";
+import Router from "next/router";
+import Cookies from "js-cookie";
+import { adminLogin } from "@/services/authService";
+import ToastNotification from "@/components/Notification";
+import { TextField, Flex, Button, Heading, Text } from "@radix-ui/themes";
+
+const App = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: any) => {
+    e.preventDefault();
+    try {
+      setError("");
+      const params: LoginRequest = {
+        email: email,
+        password: password,
+      };
+      setLoading(true);
+      const response: any = await adminLogin(params);
+      setLoading(false);
+      if (!response.success)
+        setError(`Something went wrong! ${response.message}`);
+
+      // Save token to cookies
+      Cookies.set("token", response.data.token, { expires: 1 });
+
+      // Redirect to protected page
+      Router.push("/book");
+    } catch (err: any) {
+      let message = "Invalid credentials";
+      if (err.response?.data?.message) message = err?.response?.data?.message;
+      setLoading(false);
+      setError(message);
+    }
+  };
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
+    <Flex
+      direction="column"
+      gap="2"
+      justify="center"
+      align="center"
+      height="500px"
+      width="100%"
+      mx="auto"
+    >
+      <Flex
+        direction="column"
+        gap="2"
+        width="100%"
+        maxWidth={"400px"}
+        mx="auto"
+        p={"4"}
+      >
+        <Heading mb="4">Welcome back</Heading>
+        <form onSubmit={handleSubmit}>
+          <Flex direction="column" gap="4">
+            <Flex direction="column" gap="2">
+              <Text>Email</Text>
+              <TextField.Root
+                radius="small"
+                value={email}
+                size="3"
+                type="email"
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                placeholder="input your email address"
+              />
+            </Flex>
+            <Flex direction="column" gap="2">
+              <Text>Password</Text>
+              <TextField.Root
+                radius="small"
+                size="3"
+                value={password}
+                type="password"
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                placeholder="input your password"
+              />
+            </Flex>
+            <Flex direction="column">
+              <Button
+                type="submit"
+                size="3"
+                disabled={loading}
+                loading={loading}
+              >
+                Login
+              </Button>
+            </Flex>
+          </Flex>
+        </form>
+        {error && (
+          <ToastNotification
+            message={error}
+            title="Error"
+            onClose={() => setError("")}
           />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+        )}
+      </Flex>
+    </Flex>
   );
-}
+};
+
+export default App;
