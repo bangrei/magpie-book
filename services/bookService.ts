@@ -1,8 +1,13 @@
 import { API_CONNECTOR } from "./apiConnector";
 
-export const fetchBooks = async () => {
+export const fetchBooks = async (keyword: String | "") => {
   try {
-    const { get } = API_CONNECTOR({});
+    const payload = {
+      keyword: keyword,
+    };
+    const { get } = API_CONNECTOR({
+      payload: payload,
+    });
     const path = `/books`;
     const data = await get(path);
     return Promise.resolve(data);
